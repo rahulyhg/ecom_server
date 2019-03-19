@@ -25,15 +25,25 @@ use Illuminate\Http\Request;
 
 //PROTECTED USER ROUTES
 
-Route::group(['middleware' => 'jwt.auth'], function(){
-    Route::post('/user', [
-        'uses' => 'UserController@me',  
-    ]);
-    
+Route::group(['middleware' => ['jwt.auth', 'cors']], function(){
+    // Route::post('/user', [
+    //     'uses' => 'UserController@me',  
+    // ]);
+
     Route::post('/logout', [
-        'uses' =>'UserController@logout',   
+        'uses' =>'UserController@logout'
+          
     ]); 
+    
+    
+   
+    
 });
+
+Route::get('/user', [
+    'uses' => 'UserController@getAuthenticatedUser',
+    'middleware' => 'cors'
+]);
 
 //OPEN USER ROUTES
 Route::post('/register', [
@@ -45,6 +55,7 @@ Route::post('/login', [
     'uses' => 'UserController@signin',
     'middleware' => 'cors'
 ]);
+
 
 
 

@@ -60,7 +60,8 @@ class UserController extends Controller
     }
     return response()->json([
         'token' => $token,
-        'loginSuccess' => true
+        'loginSuccess' => true,
+        'isAuthenticated' => true
     ], 200);
 
 
@@ -76,17 +77,52 @@ class UserController extends Controller
         return response()->json(auth()->user());
     }
 
+    //GET USER
+    public function getAuthenticatedUser()
+    {
+        
+        try {
+            if (! $user = JWTAuth::parseToken()->authenticate()) {
+                return response()->json(['user_not_found'], 404);
+            }
+        } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
+            return response()->json(['token_expired'], $e->getStatusCode());
+        } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
+            return response()->json(['token_invalid'], $e->getStatusCode());
+        } catch (Tymon\JWTAuth\Exceptions\JWTException $e) {
+            return response()->json(['token_absent'], $e->getStatusCode());
+        }
+        return response()->json([
+            'user' => $user,
+            
+        ]);
+    }
+
+
     /**
      * Log the user out (Invalidate the token).
      *
      * @return \Illuminate\Http\JsonResponse
      */
 
-    public function logout()
+    public function logout(Request $request)
     {
-        auth()->logout();
+         $this->validate($request, ['token' => 'required']);
 
-        return response()->json(['message' => 'Successfully logged out']);
+         try{
+             JWTAUTH::invalidate($request->input('token'));
+             return response()->json([
+                 'success' => true,
+                 'message' => "You have logged out"
+             ]);
+         } catch(Tymon\JWTAuth\Exceptions\JWTException $e){
+             return response()->json([
+                'success' => false,
+                'error' => 'Failed to log out '
+             ]);
+         }
+
+       
     }
 
 }
